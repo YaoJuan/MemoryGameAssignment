@@ -1,2 +1,2 @@
 # MemoryGameAssignment
-a assignment of Stanford  cs193p
+a  Stanford  cs193p assignment
