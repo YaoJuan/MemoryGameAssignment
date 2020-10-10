@@ -2,7 +2,7 @@
 //  MemoryGame.swift
 //  Memories
 //
-//  Created by 赵思 on 2020/9/27.
+//  Created by Bryce on 2020/9/27.
 //
 
 import Foundation
@@ -45,14 +45,75 @@ struct MemoryGame<CardContent: Equatable> {
             cards.append(Card(id: index * 2, content: content))
             cards.append(Card(id: index * 2 + 1, content: content))
         }
+        
+        cards.shuffle()
     }
     
     struct Card:  Identifiable {
         var id: Int
-        var isFaceUp = false
+        var isFaceUp = false {
+            didSet {
+                if isFaceUp {
+                    startUsingBonusTime()
+                } else {
+                    stopUsingBonusTime()
+                }
+            }
+        }
         var content: CardContent
         var isMatched = false
         
+        //MARK: -- Bonus Time
+        var bonusTimeLimit: TimeInterval = 6
         
+        // 卡牌已经朝上展示过的时间
+        private var faceUpTime: TimeInterval {
+            if let lastFaceUpDate = self.lastFaceUpDate {
+                let result = pastFaceUpTime + Date().timeIntervalSince(lastFaceUpDate)
+                return result
+            } else {
+                return pastFaceUpTime
+            }
+        }
+        
+        // 上一次翻过来的时间
+        var lastFaceUpDate: Date?
+        
+        // 记录本次翻过来之前朝上的时间
+        var pastFaceUpTime: TimeInterval = 0
+        
+        // 剩余时间
+        var bonusTimeRemaining: TimeInterval {
+            max(0, bonusTimeLimit - faceUpTime)
+        }
+        
+        // 剩余时间比百分比
+        var bonusRemainning: Double {
+            (bonusTimeLimit > 0 && bonusTimeRemaining > 0) ? bonusTimeRemaining / bonusTimeLimit : 0
+        }
+        
+        // 是否获得得分
+        var hasEarnedBonus: Bool {
+            isMatched && bonusTimeRemaining > 0
+        }
+        
+        // 是否用完了时间
+        var isConsumingBonusTime: Bool {
+            isFaceUp && !isMatched && bonusTimeRemaining > 0
+        }
+        
+        private mutating func startUsingBonusTime() {
+            if isConsumingBonusTime, lastFaceUpDate == nil {
+                lastFaceUpDate = Date()
+            }
+        }
+        
+        // 当牌被翻回去，或者匹配上了
+        private mutating func stopUsingBonusTime() {
+            pastFaceUpTime = faceUpTime
+            self.lastFaceUpDate = nil
+        }
     }
+    
+
 }

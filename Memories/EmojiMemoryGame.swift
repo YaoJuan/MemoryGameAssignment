@@ -2,7 +2,7 @@
 //  EmojiMemoryGame.swift
 //  Memories
 //
-//  Created by 赵思 on 2020/9/27.
+//  Created by Bryce on 2020/9/27.
 //
 
 import Foundation
@@ -26,5 +26,9 @@ class EmojiMemoryGame: ObservableObject {
     // MARK: -Intent(s)
     func choose(card: MemoryGame<String>.Card) {
         model.chooseCard(card: card)
+    }
+    
+    func resetGame() {
+        model = Self.createMemoryGame()
     }
 }

@@ -2,7 +2,7 @@
 //  EmojiMemoryContentView.swift
 //  Memories
 //
-//  Created by 赵思 on 2020/9/22.
+//  Created by Bryce on 2020/9/22.
 //
 
 import SwiftUI
@@ -11,74 +11,30 @@ import CoreData
 struct EmojiMemoryContentView: View {
     @ObservedObject var emojiMemoryGame = EmojiMemoryGame()
     
-    @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
-
     var body: some View {
         
-        Grid(emojiMemoryGame.cards) { card  in
-            SingleCard(card: card).onTapGesture {
-                emojiMemoryGame.choose(card: card)
-            }.padding(5)
-        }
-        .foregroundColor(.orange)
-        .padding()
-        
-
-//        }
-        .toolbar {
-            #if os(iOS)
-            EditButton()
-            #endif
-
-            Button(action: addItem) {
-                Label("Add Item", systemImage: "plus")
+        VStack {
+            Grid(emojiMemoryGame.cards) { card  in
+                SingleCard(card: card).onTapGesture {
+                    withAnimation(.linear) {
+                        emojiMemoryGame.choose(card: card)
+                    }
+                }.padding(5)
             }
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            .foregroundColor(.orange)
+            .padding()
+            Button(action: {
+                withAnimation(.easeInOut) {
+                    emojiMemoryGame.resetGame()
+                }
+                
+            }, label: {
+                Label("New Game", systemImage: "flame.fill")
+            })
+            
         }
     }
 }
-
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
@@ -93,20 +49,47 @@ struct SingleCard: View {
         GeometryReader(content: { geometry in
             body(for: geometry.size)
         })
-
+    }
+    
+    @State private var animateBonusRemaining: Double = 0
+    
+    private func startBonusTimeAnimation() {
+        animateBonusRemaining = card.bonusRemainning
+        withAnimation(.linear(duration: card.bonusTimeRemaining)) {
+            animateBonusRemaining = 0
+        }
     }
     
     @ViewBuilder
     private func body(for size: CGSize) -> some View {
         if !card.isMatched || card.isFaceUp {
             ZStack {
-               Pie(startAngle: Angle(degrees: 0 - 90), endAngle: Angle(degrees: 110 - 90), closeWise: true).padding(5).opacity(0.4)
+                Group {
+                    if card.isConsumingBonusTime {
+                        Pie(startAngle: Angle(degrees: 0 - Self.offsetRotationAngle), endAngle: Angle(degrees: -animateBonusRemaining * 360 - Self.offsetRotationAngle), closeWise: true)
+                         .onAppear(perform: {
+                             startBonusTimeAnimation()
+                         })
+                    } else {
+                        Pie(startAngle: Angle(degrees: 0 - Self.offsetRotationAngle), endAngle: Angle(degrees: -card.bonusRemainning * 360 - Self.offsetRotationAngle), closeWise: true)
+                    }
+                }.padding(Self.cardPadding).opacity(Self.cardOpacity)
+
+
                Text(card.content)
+                .rotationEffect(Angle(degrees: card.isMatched ? Self.matchedRotationAngle : Self.unMatchedRotationAngle))
+                .animation(card.isMatched ? Animation.linear(duration: 1).repeatForever(autoreverses: false) : .default)
             }.clarify(isFaceUp: card.isFaceUp).font(Font.system(size: Self.fontSize(size: size)))
+            .transition(AnyTransition.scale)
         }
     }
     
+    static let cardOpacity: Double = 0.4
+    static let cardPadding: CGFloat = 5
     static let fontScaleFactor: CGFloat = 0.75
+    static let matchedRotationAngle: Double = 360
+    static let offsetRotationAngle: Double = 90
+    static let unMatchedRotationAngle: Double = 0
     static func fontSize(size:CGSize) -> CGFloat {
         let minFloat = min(size.width, size.height)
         return minFloat * Self.fontScaleFactor

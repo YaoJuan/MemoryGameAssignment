@@ -2,12 +2,22 @@
 //  Pie.swift
 //  Memories
 //
-//  Created by 赵思 on 2020/9/29.
+//  Created by Bryce on 2020/9/29.
 //
 
 import SwiftUI
 
 struct Pie: Shape {
+    
+    var animatableData: AnimatablePair<Double, Double> {
+        get {
+            AnimatablePair(startAngle.radians, endAngle.radians )
+        }
+        set {
+            startAngle = Angle(radians: newValue.first)
+            endAngle = Angle(radians: newValue.second)
+        }
+    }
     
     var startAngle: Angle
     var endAngle: Angle

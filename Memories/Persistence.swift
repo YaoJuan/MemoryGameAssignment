@@ -2,7 +2,7 @@
 //  Persistence.swift
 //  Memories
 //
-//  Created by 赵思 on 2020/9/22.
+//  Created by Bryce on 2020/9/22.
 //
 
 import CoreData
