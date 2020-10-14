@@ -17,7 +17,7 @@ struct Grid<Item, ItemView>: View where Item: Identifiable, ItemView: View {
     }
     var body: some View {
         GeometryReader { geometry  in
-            let layout = GridLayout(itemCount: items.count,nearAspectRatio: 0.7,  in: geometry.size)
+            let layout = GridLayout(itemCount: items.count,nearAspectRatio: 2 / 3 ,  in: geometry.size)
 
             
             ForEach(items) { item in

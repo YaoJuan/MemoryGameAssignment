@@ -73,7 +73,10 @@ struct SingleCard: View {
                     } else {
                         Pie(startAngle: Angle(degrees: 0 - Self.offsetRotationAngle), endAngle: Angle(degrees: -card.bonusRemainning * 360 - Self.offsetRotationAngle), closeWise: true)
                     }
-                }.padding(Self.cardPadding).opacity(Self.cardOpacity)
+                }
+                .padding(Self.cardPadding)
+                .opacity(Self.cardOpacity)
+                .transition(.scale)
 
 
                Text(card.content)
