@@ -11,6 +11,10 @@ struct MemoryGame<CardContent: Equatable> {
     
     private(set) var cards: Array<Card>
     
+    private(set) var score: Int = 0
+    
+    private(set) var needMinusScore: Int = 0
+    
     private var indexOfTheOneAndOnlyFaceUpCard: Int? {
         get { cards.indices.filter { cards[$0].isFaceUp }.only }
         set {
@@ -35,7 +39,20 @@ struct MemoryGame<CardContent: Equatable> {
             } else {
                 indexOfTheOneAndOnlyFaceUpCard = chooseIndex
             }
+            caculateScore(with: chooseIndex)
         }
+    }
+    
+    mutating private func caculateScore(with index: Int) {
+
+        let card = cards[index]
+        
+        // find out how much score should be minus
+        _ =  cards.filter { $0.pastFaceUpTime > 0 && $0.id != card.id }
+            .filter { $0.content == card.content && !$0.hasEarnedBonus}
+            .map { _ in needMinusScore += 1 }
+        
+        score = cards.reduce(into: 0) { $0 += $1.hasEarnedBonus ? 1 : 0 } - needMinusScore
     }
     
     init(numberOfPairs: Int, cardContentFactory: (Int) -> CardContent) {

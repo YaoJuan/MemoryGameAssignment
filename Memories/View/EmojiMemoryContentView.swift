@@ -23,15 +23,21 @@ struct EmojiMemoryContentView: View {
             }
             .foregroundColor(.orange)
             .padding()
-            Button(action: {
-                withAnimation(.easeInOut) {
-                    emojiMemoryGame.resetGame()
-                }
-                
-            }, label: {
-                Label("New Game", systemImage: "flame.fill")
-            })
-            
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .circular).padding(.horizontal).foregroundColor(.red)
+                HStack {
+                    Text("Score: \(emojiMemoryGame.score)")
+                    Button(action: {
+                        withAnimation(.easeInOut) {
+                            emojiMemoryGame.resetGame()
+                        }
+                        
+                    }, label: {
+                        Label("New Game", systemImage: "flame.fill").foregroundColor(.green)
+                    })
+                }.frame(alignment: .topLeading)
+            }
+            .frame(height: 44)
         }
     }
 }
@@ -79,12 +85,29 @@ struct SingleCard: View {
                 .transition(.scale)
 
 
-               Text(card.content)
-                .rotationEffect(Angle(degrees: card.isMatched ? Self.matchedRotationAngle : Self.unMatchedRotationAngle))
-                .animation(card.isMatched ? Animation.linear(duration: 1).repeatForever(autoreverses: false) : .default)
-            }.clarify(isFaceUp: card.isFaceUp).font(Font.system(size: Self.fontSize(size: size)))
+                ZStack {
+                    Text(card.content)
+                        .font(Font.system(size: Self.fontSize(size: size)))
+                        .rotationEffect(Angle(degrees: card.isMatched ? Self.matchedRotationAngle : Self.unMatchedRotationAngle))
+                        .animation(card.isMatched ? Animation.linear(duration: 1).repeatForever(autoreverses: false) : .default)
+                    Group {
+                        if card.isMatched && !card.hasEarnedBonus {
+                            Text("overtime").font(Font.system(size: Self.overtimeFontSize(size: size)))
+                                .foregroundColor(.red)
+                                .offset(CGSize(width: 0, height: -size.height / 8 / Self.fontScaleFactor))
+                                .transition(AnyTransition.move(edge:.top)
+                                                .animation(.easeInOut(duration: 1))
+                                            )
+                        }
+                    }
+
+                }
+
+            }.clarify(isFaceUp: card.isFaceUp)
+//            .transition(AnyTransition.slide)
             .transition(AnyTransition.scale)
         }
+
     }
     
     static let cardOpacity: Double = 0.4
@@ -96,5 +119,10 @@ struct SingleCard: View {
     static func fontSize(size:CGSize) -> CGFloat {
         let minFloat = min(size.width, size.height)
         return minFloat * Self.fontScaleFactor
+    }
+    
+    static func overtimeFontSize(size: CGSize) -> CGFloat {
+        let minFloat = min(size.width, size.height)
+        return minFloat / 8
     }
 }
