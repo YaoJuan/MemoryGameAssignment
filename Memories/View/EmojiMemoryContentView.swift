@@ -10,6 +10,7 @@ import CoreData
 
 struct EmojiMemoryContentView: View {
     @ObservedObject var emojiMemoryGame = EmojiMemoryGame()
+    @EnvironmentObject var setting: GameSetting
     
     var body: some View {
         
@@ -21,25 +22,35 @@ struct EmojiMemoryContentView: View {
                     }
                 }.padding(5)
             }
-            .foregroundColor(.orange)
+            .themePrimaryColor()
             .padding()
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .circular).padding(.horizontal).foregroundColor(.red)
+                RoundedRectangle(cornerRadius: 10, style: .circular).padding(.horizontal).themeSecondaryColor()
                 HStack {
+                    Spacer()
                     Text("Score: \(emojiMemoryGame.score)")
+                        .foregroundColor(Color(setting.theme.backgroundColor))
+                    Spacer()
                     Button(action: {
                         withAnimation(.easeInOut) {
                             emojiMemoryGame.resetGame()
                         }
-                        
                     }, label: {
-                        Label("New Game", systemImage: "flame.fill").foregroundColor(.green)
+                        Label("New Game", systemImage: "flame.fill")
+                            .foregroundColor(Color(setting.theme.backgroundColor))
                     })
-                }.frame(alignment: .topLeading)
+                    Spacer()
+                }
             }
             .frame(height: 44)
+            .offset(x: 0, y: -20)
+            .padding(5)
         }
+        .navigationBarTitle("Game", displayMode: .inline)
+        .themePrimaryColor()
+        .edgesIgnoringSafeArea(.bottom)
     }
+    
 }
 
 struct ContentView_Previews: PreviewProvider {

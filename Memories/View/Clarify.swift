@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct Clarify: AnimatableModifier {
+    
+    @EnvironmentObject var setting: GameSetting
     private var rotation: Double
     
     var animatableData: Double {
@@ -33,7 +35,7 @@ struct Clarify: AnimatableModifier {
             .opacity(isFaceUp ? 1.0 : 0)
 
             RoundedRectangle(cornerRadius: Self.DrawingConstans.cornerRadius).fill()
-                .opacity(isFaceUp ? 0 : 1.0)
+                .opacity(isFaceUp ? 0 : 1.0).foregroundColor(Color(setting.theme.accentColor))
         }
         .rotation3DEffect(
             Angle(degrees: rotation),
